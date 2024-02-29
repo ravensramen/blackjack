@@ -24,3 +24,7 @@ int draw_cards_again(int sum);
 void determine_winner(int player_sum, int dealer_sum);
 
 int want_to_draw(void);
+
+int get_bank_balance(void);
+
+int validate_wager(int balance, int wager);
