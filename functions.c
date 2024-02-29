@@ -1,13 +1,14 @@
 #include "header.h"
+//add bank function, fix over 21 bust error7
 
 void initialize_rand(void) {
-	srand(time(NULL)); 
+	srand(time(NULL));
 }
 
 int card_draw() {
 	int card_value = 0;
-		card_value = rand() % 11 + 1;
-		return card_value;
+	card_value = rand() % 11 + 1;
+	return card_value;
 }
 
 void welcome_statement(void) {
@@ -38,14 +39,23 @@ void print_game_rules(void) {
 void play_blackjack(void) {
 	printf("playing game...\n");
 
-	int wager = 0;
+	int bank_balance = 0, init_wager = 0, wager = 0;
 	int player_card1 = 0, player_card2 = 0, player_card_draws = 0, dealer_card1 = 0, dealer_card2 = 0;
 
 	int sum = 0, house_sum = 0;
 	int keep_drawing = 0;
 
-	wager = enter_wager();
-	
+	bank_balance = get_bank_balance();
+	init_wager = enter_wager();
+	wager = validate_wager(bank_balance, init_wager);
+
+	if (wager = 1) {
+		printf("You don't have enough to wager that! You wish...\n");
+		return 0;
+	}
+
+
+
 	player_card1 = card_draw();
 	player_card2 = card_draw();
 
@@ -57,27 +67,41 @@ void play_blackjack(void) {
 	printf("You cards are %d and %d. Your sum is %d\n", player_card1, player_card2, sum);
 	printf("The dealer's cards are '?' and '?'... who knows what their sum could be...\n");
 
-	int keep_drawing = want_to_draw();
-		do {
-			//if user choice is yes
-			
-			if (keep_drawing == 1) {
-				int new_sum = draw_more(sum);
-				sum = new_sum;
-			}
 
-			printf("Your current sum is %d.\n", sum);
 
-		} while (keep_drawing == 1); 
+	if (sum > 21) {
+		printf("BUST!! WOMP WOMP :P\n");
+		return 0;
+	}
 
-		if (sum > 21) {
-			printf("BUST!! WOMP WOMP :P\n");
+	if (sum == 21) {
+		printf("Lucky you!... Dumb question but...");
+	}
 
+	keep_drawing = want_to_draw();
+
+
+	while (keep_drawing == 1 && sum < 21) {
+		//if user choice is yes
+		int new_sum = draw_more(sum);
+		sum = new_sum;
+
+		//if (sum > 21) {
+		//	printf("kys :P");
+		//	break;
+
+		if (sum <= 21) {
+			//printf("Your current sum is %d.\n", sum);
+			keep_drawing = want_to_draw();
 		}
+	}
 
-	house_sum = card_sum(dealer_card1, dealer_card2);
-	printf("The house's cards were %d and %d, and their sum was %d.\n", dealer_card1, dealer_card2, house_sum);
-	determine_winner(sum, house_sum);
+	if (keep_drawing == 0) {
+		printf("You said no? lets reveal the cards...\n");
+		house_sum = card_sum(dealer_card1, dealer_card2);
+		printf("The house's cards were %d and %d, and their sum was %d.\n", dealer_card1, dealer_card2, house_sum);
+		determine_winner(sum, house_sum);
+	}
 
 	return;
 }
@@ -91,62 +115,42 @@ int enter_wager(void) {
 
 
 int card_sum(int card1, int card2) {
-	int card_sum = 0; 
+	int card_sum = 0;
 	card_sum = card1 + card2;
 	return card_sum;
 }
 
-//int draw_more(int sum) {
-//	int initial_sum = sum;
-//	int final_sum = 0;
-//	char user_choice = '\0'; \
-//
-//		printf("Do you want to draw again? Enter 'Y' for yes and 'N' for no\n");
-//		scanf(" %c", &user_choice);
-//		user_choice = toupper(user_choice);
-//
-//		if (user_choice == 'Y') {
-//			final_sum = draw_cards_again(initial_sum);
-//			return final_sum;
-//		}
-//		else if (user_choice == 'N') {
-//			final_sum = 0;
-//			printf("You said no? lets reveal the cards...\n");
-//			return final_sum;
-//		}
-//}
-
 int draw_more(int sum) {
 	int initial_sum = sum;
 	int final_sum = 0;
-	char user_choice = '\0'; \
 
-	printf("Do you want to draw again? Enter 'Y' for yes and 'N' for no\n");
-	scanf(" %c", &user_choice);
-	user_choice = toupper(user_choice);
-
-	if (user_choice == 'Y') {
 	final_sum = draw_cards_again(initial_sum);
-		return final_sum;
-	}
-	if (user_choice == 'N') { 
-		printf("You said no? lets reveal the cards...\n");
-		final_sum = initial_sum;
-		return final_sum;
-	}
+	return final_sum;
 }
 
 int draw_cards_again(int sum) {
-		int previous_sum = sum;
-		int next_card = 0;
-		int sum_after = 0;
-		
-		printf("Drawing more cards\n");
-		next_card = card_draw();
-		printf("You drew a %d\n", next_card);
-		sum_after = previous_sum + next_card;
+	int previous_sum = sum;
+	int next_card = 0;
+	int sum_after = 0;
 
+	printf("Drawing more cards. . . \n");
+	next_card = card_draw();
+	printf("You drew a %d\n", next_card);
+	sum_after = previous_sum + next_card;
+
+
+
+	printf("Your new sum is %d.", sum_after);
+
+	if (sum_after == 21) {
+		printf("Lucky you!... Dumb question but...");
 		return sum_after;
+	}
+
+	if (sum_after > 21) {
+		printf("BUST!!");
+		return 0;
+	}
 }
 
 void determine_winner(int player_sum, int dealer_sum) {
@@ -156,10 +160,10 @@ void determine_winner(int player_sum, int dealer_sum) {
 	if (player_sum < dealer_sum) {
 		printf("The house wins!! Sucks to suck!\n");
 	}
-	if (dealer_sum < player_sum) {
-		printf("You win, YIPPEE!\n"); 
+	else if (dealer_sum < player_sum) {
+		printf("You win, YIPPEE!\n");
 	}
-	if (dealer_sum = player_sum) {
+	else if (dealer_sum = player_sum) {
 		printf("A stand-off?? Better luck next round I guess!\n");
 	}
 }
@@ -180,4 +184,24 @@ int want_to_draw(void) {
 		return 0;
 	}
 	return choice;
+}
+
+int get_bank_balance(void) {
+	int value = 0; 
+	printf("Enter your bank balance: ");
+	scanf("%d", &value);
+	return value;
+}
+
+
+int validate_wager(int balance, int wager) {
+	int valid = 0;
+	if (balance < wager) {
+		valid = 0;
+		return valid;
+	}
+	if (balance >= wager) {
+		valid = 1;
+		return valid;
+	}
 }
